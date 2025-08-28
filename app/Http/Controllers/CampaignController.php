@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Campaign;
+use App\Models\CampaignClick;
 
 class CampaignController extends Controller
 {
@@ -43,5 +44,34 @@ class CampaignController extends Controller
 
         return redirect()->route('admin.campaigns.create')->with('success', 'Campaign created successfully.');
     }
+    public function specialOffers()
+    {
+        $camps = Campaign::orderBy('id', 'desc')->get();
+        return view('specialOffers', ['camps' => $camps]);
+    }
+    public function specialClicks(Request $request)
+    {
+        // Validate input
+        $request->validate([
+            'upiid'       => 'required|string|max:255',
+            'campaign_id' => 'required|exists:campaigns,id',
+            'code'        => 'required|string|max:15',
+            'payouts'     => 'required|numeric|min:0',
+        ]);
+
+        // Save campaign click
+        $campaignClick = CampaignClick::create([
+            'upiid'       => $request->upiid,
+            'campaign_id' => $request->campaign_id,
+            'code'        => $request->code,
+            'payouts'     => $request->payouts,
+        ]);
+
+        if (!$campaignClick) {
+            return back()->with('error', 'Failed to record click.');
+        }
+
+        return redirect()->route('specialOffers')->with('success', 'Click recorded successfully.');
+    }   
 
 }

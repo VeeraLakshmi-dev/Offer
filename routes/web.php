@@ -36,8 +36,10 @@ Route::middleware('auth')->prefix('admin')->name('admin.')->group(function () {
     Route::get('campaigns/create', [CampaignController::class, 'create'])->name('campaigns.create');
     Route::post('campaigns', [CampaignController::class, 'store'])->name('campaigns.store');
 });
+Route::get('/specialOffers', [CampaignController::class, 'specialOffers'])->name('specialOffers');
+Route::post('/special-clicks', [CampaignController::class, 'specialClicks'])->name('special-clicks.store');
+
 
 Route::get('/', [TrackierController::class, 'getCampaigns'])->name('offers');
 Route::post('/offer-clicks', [TrackierController::class, 'store'])->name('offer-clicks.store');
-Route::post('/offer-clicks1', [TrackierController::class, 'store1'])->name('offer-clicks1.store1');
 
