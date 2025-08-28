@@ -865,6 +865,39 @@
                 </div>
             </div>
             @endforeach
+             @foreach ($camps as $camp)
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-badge">⭐ New</div>
+                </div>
+                <div class="card-content">
+                    <h3 class="card-title">{{ $camp['name'] }}</h3>
+                    <p class="card-description">
+                        {{$camp['description'] }}
+                    </p>
+                </div>
+
+                <div class="price-container">
+                    <div class="price-amount">₹{{ number_format($camp['payouts']) }}</div>
+                    <div class="price-label">Earn Upto</div>
+                </div>
+
+                <div style="padding: 0 30px 30px;">
+                      <button class="action-btn"
+                        data-id="{{ $camp['id'] }}"
+                        data-title="{{ $camp['name'] }}"
+                        data-description="{{ $camp['description'] }}"
+                        data-payout="{{ $camp['payouts'] }}"
+                        data-tracking="{{ $camp['url'] }}"
+                        data-code="{{ $camp['code'] }}"
+                        onclick="showOfferModal1(this)">
+                        <span class="loading" style="display: none;"></span>
+                        <span>Get Offer</span>
+                        <span class="icon">👉</span>
+                    </button>
+                </div>
+            </div>
+            @endforeach
         </div>
     </div>
 
@@ -905,35 +938,174 @@
             </div>
         </div>
     </div>
+    <div class="modal-overlay" id="offerModal1">
+        <div class="modal-container">
+            <div class="modal-header">
+                <h3 class="modal-title" id="modalOfferTitle1"></h3>
+                <div class="modal-close" onclick="closeModal()">
+                    &times;
+                </div>
+            </div>
 
+            <div class="modal-content" id="modalForm1">
+                <p class="modal-description" id="modalOfferDescription1"></p>
+
+                <div class="modal-price">
+                    <div class="modal-price-amount" id="modalOfferPrice1"></div>
+                    <div class="modal-price-label">Earn Upto</div>
+                </div>
+
+                <div class="form-group">
+                    <label for="upiId" class="form-label">Enter Your UPI ID</label>
+                    <input type="text" id="upiId1" class="form-input" placeholder="yourname@upi" required>
+                </div>
+
+                <div class="modal-actions">
+                    <button class="modal-btn modal-btn-secondary" onclick="closeModal1()">Cancel</button>
+                    <button class="modal-btn modal-btn-primary" onclick="completeOffer1()">Complete Offer</button>
+                </div>
+            </div>
+
+            <div class="modal-success" id="modalSuccess1">
+                <div class="modal-success-icon">✓</div>
+                <h3 class="modal-success-title">Offer Submitted!</h3>
+                <p class="modal-success-message">Thank you for participating.</p>
+                <button class="modal-btn modal-btn-primary" onclick="redirectToOffer1()">Continue to Offer</button>
+            </div>
+        </div>
+    </div>
     <script>
-        // Navigation functionality
-        const homeNav = document.getElementById('home-nav');
-        const dealsNav = document.getElementById('deals-nav');
-        const cardsGrid = document.getElementById('cards-grid');
+           // Modal functionality
+        let currentCampaignId1 = null;
+        let currentTrackingLink1 = null;
+        let submitBtn1 = null;
 
-        function switchTab(activeTab, inactiveTab) {
-            activeTab.classList.add('active');
-            inactiveTab.classList.remove('active');
+        function showOfferModal1(button) {
+            const campaignId1 = button.dataset.id;
+            const title1 = button.dataset.title;
+            const payout1 = button.dataset.payout;
+            const trackingLink1 = button.dataset.tracking;
+            const code = button.dataset.code;
 
-            // Add smooth transition effect
-            cardsGrid.style.transform = 'scale(0.95)';
-            cardsGrid.style.opacity = '0.7';
+            // Decode HTML entities back to real HTML
+            let description1 = button.dataset.description;
+            const txt1 = document.createElement("textarea");
+            txt1.innerHTML = description1;
+            description1 = txt1.value;
 
-            setTimeout(() => {
-                cardsGrid.style.transform = 'scale(1)';
-                cardsGrid.style.opacity = '1';
-            }, 200);
+            currentCampaignId1 = campaignId1;
+            currentTrackingLink1 = trackingLink1;
+
+            document.getElementById('modalOfferTitle1').textContent = title1;
+
+            document.getElementById('modalOfferDescription1').innerHTML = description1;
+
+            document.getElementById('modalOfferPrice1').textContent =
+                '₹' + parseInt(payout1).toLocaleString('en-IN');
+
+            document.getElementById('modalForm1').style.display = 'block';
+            document.getElementById('modalSuccess1').style.display = 'none';
+            document.getElementById('upiId1').value = '';
+            document.getElementById('code').value = '';
+            document.getElementById('offerModal1').classList.add('active');
         }
 
-        homeNav.addEventListener('click', (e) => {
-            e.preventDefault();
-            switchTab(homeNav, dealsNav);
-        });
+        function closeModal1() {
+            resetSubmitButton1();
+            document.getElementById('offerModal1').classList.remove('active');
+        }
+        function resetSubmitButton1() {
+            if (submitBtn1) {
+                submitBtn1.innerHTML = 'Complete Offer';
+                submitBtn1.disabled = false;
+            }
+        }
+        function completeOffer1() {
+            const upiId1 = document.getElementById('upiId1').value.trim();
 
-        dealsNav.addEventListener('click', (e) => {
-            e.preventDefault();
-            switchTab(dealsNav, homeNav);
+            if (!upiId1) {
+                alert('Please enter your UPI ID');
+                return;
+            }
+
+            // Validate UPI ID format (simple validation)
+            if (!upiId1.includes('@')) {
+                alert('Please enter a valid UPI ID (e.g., yourname@upi)');
+                return;
+            }
+
+           submitBtn1 = document.querySelector('#modalForm .modal-btn-primary');
+            const originalBtnText1 = submitBtn1.innerHTML;
+            submitBtn1.innerHTML = '<span class="loading"></span> Processing...';
+            submitBtn1.disabled = true;
+
+            // Get CSRF token - fallback if meta tag doesn't exist
+            let csrfToken1 = '';
+            const csrfMeta1 = document.querySelector('meta[name="csrf-token"]');
+            if (csrfMeta1) {
+                csrfToken1 = csrfMeta1.content;
+            }
+
+            // Make the API call to save the offer click
+            fetch('/offer-clicks1', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': csrfToken1
+                },
+                body: JSON.stringify({
+                    campaign_id1: currentCampaignId1,
+                    upi_id1: upiId1,
+                    code: code,
+                    tracking_link1: currentTrackingLink1
+                })
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+           .then(data => {
+                if (data.success) {
+                    // Show success message
+                    document.getElementById('modalForm1').style.display = 'none';
+                    document.getElementById('modalSuccess1').style.display = 'block';
+
+                    // Update redirect button with backend generated URL
+                    const redirectBtn1 = document.querySelector('#modalSuccess1 .modal-btn-primary');
+                    redirectBtn1.onclick = function() {
+                        if (data.redirect_url) {
+                            window.open(data.redirect_url, '_blank');
+                        }
+                        closeModal();
+                    };
+                } else {
+                    alert('Error: ' + (data.message || 'Something went wrong'));
+                    submitBtn1.innerHTML = originalBtnText1;
+                    submitBtn1.disabled = false;
+                    resetSubmitButton1();
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('An error occurred. Please try again.');
+                submitBtn1.innerHTML = originalBtnText1;
+                submitBtn1.disabled = false;
+                resetSubmitButton1();
+            });
+        }
+        function redirectToOffer1() {
+            if (currentTrackingLink1 && currentTrackingLink1 !== '#') {
+                window.open(currentTrackingLink1, '_blank');
+            }
+            closeModal1();
+        }
+        // Close modal when clicking outside
+        document.getElementById('offerModal1').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeModal1();
+            }
         });
 
         // Modal functionality
@@ -980,7 +1152,7 @@
                 submitBtn.disabled = false;
             }
         }
-      function completeOffer() {
+        function completeOffer() {
             const upiId = document.getElementById('upiId').value.trim();
 
             if (!upiId) {
@@ -1025,17 +1197,17 @@
                 }
                 return response.json();
             })
-            .then(data => {
+           .then(data => {
                 if (data.success) {
                     // Show success message
                     document.getElementById('modalForm').style.display = 'none';
                     document.getElementById('modalSuccess').style.display = 'block';
 
-                    // Update the redirect button with the tracking link
+                    // Update redirect button with backend generated URL
                     const redirectBtn = document.querySelector('#modalSuccess .modal-btn-primary');
                     redirectBtn.onclick = function() {
-                        if (currentTrackingLink && currentTrackingLink !== '#') {
-                            window.open(currentTrackingLink, '_blank');
+                        if (data.redirect_url) {
+                            window.open(data.redirect_url, '_blank');
                         }
                         closeModal();
                     };
@@ -1065,6 +1237,35 @@
             if (e.target === this) {
                 closeModal();
             }
+        });
+
+        // Navigation functionality
+        const homeNav = document.getElementById('home-nav');
+        const dealsNav = document.getElementById('deals-nav');
+        const cardsGrid = document.getElementById('cards-grid');
+
+        function switchTab(activeTab, inactiveTab) {
+            activeTab.classList.add('active');
+            inactiveTab.classList.remove('active');
+
+            // Add smooth transition effect
+            cardsGrid.style.transform = 'scale(0.95)';
+            cardsGrid.style.opacity = '0.7';
+
+            setTimeout(() => {
+                cardsGrid.style.transform = 'scale(1)';
+                cardsGrid.style.opacity = '1';
+            }, 200);
+        }
+
+        homeNav.addEventListener('click', (e) => {
+            e.preventDefault();
+            switchTab(homeNav, dealsNav);
+        });
+
+        dealsNav.addEventListener('click', (e) => {
+            e.preventDefault();
+            switchTab(dealsNav, homeNav);
         });
 
         // Add parallax effect on scroll
