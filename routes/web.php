@@ -22,6 +22,9 @@ use App\Http\Controllers\CampaignController;
 
 Route::get('admin/register', [AdminAuthController::class, 'showRegister'])->name('admin.register');
 Route::post('admin/register', [AdminAuthController::class, 'register'])->name('admin.register.submit');
+Route::get('/login', function () {
+    return redirect()->route('admin.login');
+})->name('login');
 
 Route::get('admin/login', [AdminAuthController::class, 'showLogin'])->name('admin.login');
 Route::post('admin/login', [AdminAuthController::class, 'login'])->name('admin.login.submit');

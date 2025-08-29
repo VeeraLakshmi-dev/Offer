@@ -58,7 +58,10 @@ class CampaignController extends Controller
             'code'        => 'required|string|max:15',
             'payouts'     => 'required|numeric|min:0',
         ]);
-
+        $cam = CampaignClick::where('upiid', $request->upiid)->where('campaign_id',$request->campaign_id)->first();
+        if($cam){
+            return redirect()->away($request->url);
+        }
         // Save campaign click
         $campaignClick = CampaignClick::create([
             'upiid'       => $request->upiid,
@@ -71,7 +74,7 @@ class CampaignController extends Controller
             return back()->with('error', 'Failed to record click.');
         }
 
-        return redirect()->route('specialOffers')->with('success', 'Click recorded successfully.');
-    }   
+        return redirect()->away($request->url);
+    }
 
 }
